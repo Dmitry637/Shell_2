@@ -1,5 +1,4 @@
 package ru.example.dependencygraph.config;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.InvalidPathException;
@@ -9,28 +8,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-
-/** Проверяет все пользовательские параметры и возвращает все найденные ошибки. */
 public final class ConfigValidator {
     private static final Pattern PACKAGE_NAME = Pattern.compile("^[A-Za-z0-9][A-Za-z0-9._-]*[A-Za-z0-9]$|^[A-Za-z0-9]$");
     private static final Pattern VERSION = Pattern.compile(
             "^(?:[0-9]+\\.)*[0-9]+(?:[-+][0-9A-Za-z][0-9A-Za-z.-]*)?$"
     );
-
     private ConfigValidator() {
     }
-
     public static List<String> validate(Map<String, String> values, Path configFile) {
         List<String> errors = new ArrayList<>();
         Path configDirectory = configFile.toAbsolutePath().normalize().getParent();
-
         String packageName = value(values, "package_name");
         if (isBlank(packageName)) {
             errors.add("Параметр 'package_name' обязателен.");
         } else if (!PACKAGE_NAME.matcher(packageName).matches()) {
             errors.add("Параметр 'package_name' имеет неверный формат: используйте буквы, цифры, '.', '_' или '-', без пробелов и разделителей по краям.");
         }
-
         String mode = value(values, "repository_mode");
         boolean validMode = false;
         if (isBlank(mode)) {
@@ -40,7 +33,6 @@ public final class ConfigValidator {
         } else {
             validMode = true;
         }
-
         String repository = value(values, "repository");
         if (isBlank(repository)) {
             errors.add("Параметр 'repository' обязателен: укажите путь к файлу или URL репозитория.");
@@ -51,24 +43,20 @@ public final class ConfigValidator {
                 validateRemoteRepository(repository, errors);
             }
         }
-
         String version = value(values, "package_version");
         if (isBlank(version)) {
             errors.add("Параметр 'package_version' обязателен.");
         } else if (!VERSION.matcher(version).matches()) {
             errors.add("Параметр 'package_version' имеет неверный формат; пример допустимой версии: 1.2.3 или 1.2.3-SNAPSHOT.");
         }
-
         String graphOutput = value(values, "graph_output_file");
         if (isBlank(graphOutput)) {
             errors.add("Параметр 'graph_output_file' обязателен.");
         } else {
             validateGraphOutput(graphOutput, configDirectory, errors);
         }
-
         return List.copyOf(errors);
     }
-
     private static void validateLocalRepository(String repository, Path configDirectory, List<String> errors) {
         try {
             Path path = Path.of(repository);
@@ -87,7 +75,6 @@ public final class ConfigValidator {
             errors.add("Параметр 'repository' содержит недопустимый путь: " + exception.getInput());
         }
     }
-
     private static void validateRemoteRepository(String repository, List<String> errors) {
         try {
             URI uri = new URI(repository);
@@ -100,7 +87,6 @@ public final class ConfigValidator {
             errors.add("Параметр 'repository' содержит некорректный URL: " + exception.getMessage());
         }
     }
-
     private static void validateGraphOutput(String graphOutput, Path configDirectory, List<String> errors) {
         if (!graphOutput.toLowerCase().endsWith(".png")) {
             errors.add("Параметр 'graph_output_file' должен указывать на PNG-файл с расширением .png.");
@@ -126,11 +112,9 @@ public final class ConfigValidator {
             errors.add("Параметр 'graph_output_file' содержит недопустимый путь: " + exception.getInput());
         }
     }
-
     private static String value(Map<String, String> values, String key) {
         return values.get(key);
     }
-
     private static boolean isBlank(String value) {
         return value == null || value.isBlank();
     }
